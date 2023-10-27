@@ -19,7 +19,7 @@ parser.add_argument('-i','--vendor', type=lambda x: int(x,0), default=0x046d, he
 parser.add_argument('-p','--product', type=lambda x: int(x,0), default=0xc216, help='product id')
 parser.add_argument('-m','--mode', type=str, choices=mode_names,
                      default=Mode.DINPUT.name, help='mode')
-parser.add_argument('-t','--threshold', type=float, default=0.3, help='axis threshold')
+parser.add_argument('-t','--threshold', type=float, default=0.5, help='axis threshold')
 parser.add_argument('-s','--settings_file', type=str, default="settings.yaml", help='settings file')
 parser.add_argument('-vv','--verbose', action='store_true', help='verbose')
 parser.add_argument('-d','--debug', action='store_true', help='debug')
@@ -199,6 +199,8 @@ softwareKeyRepeatManager = SoftwareKeyRepeatManager(
 if is_debug:
     print(f"softwareKeyRepeatManager: {softwareKeyRepeatManager}")
 
+pyautogui.PAUSE = 0.005
+
 class KeyPress(OutEvent):
     def __init__(self, key: str):
         self.key = key
@@ -231,6 +233,17 @@ class KeyUp(OutEvent):
 
     def __str__(self):
         return f"KeyUp({self.key})"
+    
+class TypeWrite(OutEvent):
+    def __init__(self, text: str, interval: float = 0.001):
+        self.text = text
+        self.interval = interval
+
+    def execute(self):
+        pyautogui.typewrite(self.text, interval=self.interval)
+
+    def __str__(self):
+        return f"TypeWrite({self.text})"
 
 class Layer(Enum):
     MOUSE = 1
@@ -250,8 +263,9 @@ symbol_mode = SymbolMode.DEFAULT
 
 pre_ctrl_flag = False
 pre_shift_flag = False
-star_flag = False
+pre_star_flag = False
 shift_press_started_time = None
+star_press_started_time = None
 
 out_events = []
 
@@ -262,6 +276,7 @@ long_press_threshold_sec = settings['long_press_threshold_sec'] if 'long_press_t
 use_ctrl_space_for_kanji_key = settings['use_ctrl_space_for_kanji_key'] if 'use_ctrl_space_for_kanji_key' in settings else False
 
 is_shift_long_pressing = False
+is_star_long_pressing = False
 
 pressing_dict: dict[str, bool] = {}
 
@@ -342,7 +357,18 @@ try:
                         shift_press_started_time = None
                         add_oev(Debug("shift off"))
 
+                if bt == ButtonType.L and st == True:
+                    if not pre_star_flag:
+                        pre_star_flag = True
+                        star_press_started_time = time.time()
+                        add_oev(Debug("star on"))
+                    elif pre_star_flag:
+                        pre_star_flag = False
+                        star_press_started_time = None
+                        add_oev(Debug("star off"))
+
                 is_shift = pre_shift_flag or is_shift_long_pressing
+                is_star = pre_star_flag or is_star_long_pressing
 
                 if st == True:
                     if bt == ButtonType.A:
@@ -354,22 +380,66 @@ try:
                     elif bt == ButtonType.Y:
                         add_oev(KeyPress("o"))
 
-                if not is_shift:
+                if not is_shift and not is_star:
                     if st == True:
-                        if bt == ButtonType.ZR:
+                        if bt == ButtonType.SELECT:
+                            pressing_dict["backspace"] = True
+                            add_oev(KeyDown("backspace", repeat=True))
+                        elif bt == ButtonType.START:
+                            add_oev(KeyPress("enter"))
+                        elif bt == ButtonType.ZR:
                             add_oev(KeyPress("u"))
                         elif bt == ButtonType.R:
                             add_oev(KeyPress(" "))
-                else: # is_shift
+                elif is_star:
                     if st == True:
-                        if bt == ButtonType.R:
-                            if is_shift_long_pressing:
-                                pressing_dict["backspace"] = True
-                                add_oev(KeyDown("backspace", repeat=True))
-                            else:
-                                add_oev(KeyPress("backspace"))
+                        if bt == ButtonType.SELECT:
+                            add_oev(KeyPress(","))
+                        elif bt == ButtonType.START:
+                            add_oev(KeyPress("."))
+                        elif bt == ButtonType.ZR:
+                            add_oev(KeyPress("p"))
+                        elif bt == ButtonType.R:
+                            add_oev(KeyPress("r"))
+                elif is_shift:
+                    if st == True:
+                        if bt == ButtonType.SELECT:
+                            add_oev(KeyPress("?"))
+                        elif bt == ButtonType.START:
+                            add_oev(KeyPress("!"))
 
-                if st == False and bt == ButtonType.R:
+                if not is_star:
+                    if st == True:  
+                        if bt == ButtonType.RIGHT:
+                            add_oev(KeyPress("k"))
+                        elif bt == ButtonType.DOWN:
+                            add_oev(KeyPress("s"))
+                        elif bt == ButtonType.LEFT:
+                            add_oev(KeyPress("t"))
+                        elif bt == ButtonType.UP:
+                            add_oev(KeyPress("h"))
+                        elif bt == ButtonType.ANALOG_L_RIGHT:
+                            add_oev(KeyPress("n"))
+                        elif bt == ButtonType.ANALOG_L_DOWN:
+                            add_oev(KeyPress("w"))
+                        elif bt == ButtonType.ANALOG_L_LEFT:
+                            add_oev(KeyPress("m"))
+                        elif bt == ButtonType.ANALOG_L_UP:
+                            add_oev(TypeWrite("xtsu"))
+                else: # is_star
+                    if st == True:
+                        if bt == ButtonType.RIGHT:
+                            add_oev(KeyPress("g"))
+                        elif bt == ButtonType.DOWN:
+                            add_oev(KeyPress("z"))
+                        elif bt == ButtonType.LEFT:
+                            add_oev(KeyPress("d"))
+                        elif bt == ButtonType.UP:
+                            add_oev(KeyPress("b"))
+                        elif bt == ButtonType.ANALOG_L_RIGHT:
+                            add_oev(TypeWrite("nn"))
+
+                if st == False and bt == ButtonType.SELECT:
                     if "backspace" in pressing_dict and pressing_dict["backspace"]:
                         pressing_dict["backspace"] = False
                         add_oev(KeyUp("backspace"))
@@ -379,6 +449,12 @@ try:
                         pre_shift_flag = False
                         shift_press_started_time = None
                         add_oev(Debug("shift off"))
+
+                if not is_star_long_pressing and pre_star_flag:
+                    if st == False and bt != ButtonType.L:
+                        pre_star_flag = False
+                        star_press_started_time = None
+                        add_oev(Debug("star off"))
 
             prev_is_shift_long_pressing = is_shift_long_pressing
             is_shift_long_pressing = (
