@@ -142,7 +142,7 @@ SoftwareKeyRepeatManager.set_singleton(softwareKeyRepeatManager)
 if is_debug:
     print(f"softwareKeyRepeatManager: {softwareKeyRepeatManager}")
 
-pyautogui.PAUSE = 0.005
+pyautogui.PAUSE = get_setting_or('pyautogui_pause_sec', 0.005)
 
 layer = LayerMode.KEYBOARD_JP
 jp_input_mode = JPInputMode.from_str(get_setting_or('jp_input_mode', "ROMAJI"))
@@ -160,7 +160,6 @@ flick_processor = FlickProcessor(out_event_manager,
                                  use_ctrl_space_for_kanji_key=use_ctrl_space_for_kanji_key,
                                  long_press_threshold_sec=long_press_threshold_sec)
 
-
 def software_key_repeat_manager_thread():
     while True:
         softwareKeyRepeatManager.update()
@@ -172,7 +171,9 @@ software_key_repeat_manager_thread = threading.Thread(target=software_key_repeat
 software_key_repeat_manager_thread.start()
 
 try:
+    # Main loop
     while True:
+        # JoyCon events
         if device_mode == DeviceMode.JOYCON:
             l_events, l_raw = joycon_l.read_events_with_raw()
             r_events, r_raw = joycon_r.read_events_with_raw()
@@ -194,6 +195,7 @@ try:
             # for event in r_events:
             #     print(f"JOYCON_R {event}")
 
+        # Normal gamepad events
         else:
             events, raw = gamepad.read_events_with_raw()
             axis_value_dict = gamepad.get_axis_values()
@@ -202,6 +204,8 @@ try:
                 if raw:
                     # print(raw)
                     print(" ".join([f"{x:03d}" for x in raw]))
+
+        # Debugs
 
         if is_debug_event:
             for event in events:
@@ -218,6 +222,7 @@ try:
                 print(f"{button_type}: {value}")
             print("-------")
 
+        # Process events
         if layer == LayerMode.KEYBOARD_JP:
             # Romaji mode
             if jp_input_mode == JPInputMode.ROMAJI:

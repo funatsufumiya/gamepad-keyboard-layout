@@ -5,3 +5,4 @@ software_key_repeat_delay_sec_first: 0.3
 software_key_repeat_delay_sec: 0.06
 # jp_input_mode: FLICK
 jp_input_mode: ROMAJI
+pyautogui_pause_sec: 0.005
