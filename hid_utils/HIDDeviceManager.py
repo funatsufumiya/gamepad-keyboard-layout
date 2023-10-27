@@ -3,6 +3,7 @@ import sys
 import functools
 from .HIDDevice import HIDDevice
 from .DeviceMode import DeviceMode
+from .JoyConType import JoyConType
 print = functools.partial(print, flush=True)
 
 class HIDDeviceManager:
@@ -20,10 +21,14 @@ class HIDDeviceManager:
         return False
     
     def get_device(self, vendor_id, product_id, mode=DeviceMode.DINPUT,
+                   joycon_type=JoyConType.NONE,
                    axis_threshold=0.1, nonblocking=True) -> HIDDevice:
         if self.has_device(vendor_id, product_id):
-            return HIDDevice(vendor_id, product_id, mode,
-                            axis_threshold, nonblocking)
+            return HIDDevice(vendor_id, product_id,
+                            mode=mode,
+                            joycon_type=joycon_type,
+                            axis_threshold=axis_threshold,
+                            nonblocking=nonblocking)
         else:
             return None
 
