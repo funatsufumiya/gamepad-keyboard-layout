@@ -1,10 +1,13 @@
 import hid
 import sys
+from . import DeviceMode as _DeviceMode
 import functools
 print = functools.partial(print, flush=True)
 
+DeviceMode = _DeviceMode.DeviceMode
+
 class HIDDevice:
-    def __init__(self, vendor_id, product_id, nonblocking=True):
+    def __init__(self, vendor_id, product_id, mode=DeviceMode.DINPUT, nonblocking=True):
         self.vendor_id = vendor_id
         self.product_id = product_id
         self.nonblocking = nonblocking
