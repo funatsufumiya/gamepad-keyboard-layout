@@ -1,3 +1,9 @@
+import sys
+import os
+import yaml
+import time
+# import asyncio
+import threading
 import argparse
 import pyautogui
 from enum import Enum
@@ -5,13 +11,7 @@ from hid_utils import HIDDeviceManager, DeviceMode, JoyConType, AxisType, Button
 from gamepad_input_helper import SoftwareKeyRepeatManager, DebugState
 from gamepad_input_helper.modes import LayerMode, JPInputMode, SymbolMode
 from gamepad_input_helper.event_processor import OutEventManager, RomajiProcessor, FlickProcessor
-import sys
-import os
-import yaml
-import time
-import asyncio
 import functools
-import threading
 print = functools.partial(print, flush=True)
 
 mode_names = [x.name for x in DeviceMode]
