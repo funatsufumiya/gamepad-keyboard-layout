@@ -1,2 +1,4 @@
 hidapi
+pyautogui
 argparse
+asyncio
