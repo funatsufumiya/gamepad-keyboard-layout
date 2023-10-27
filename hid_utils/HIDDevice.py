@@ -9,12 +9,11 @@ print = functools.partial(print, flush=True)
 class HIDDevice:
     button_state_dict: dict[ButtonType, bool] = {}
 
-    def __init__(self, vendor_id, product_id, mode=DeviceMode.DINPUT, axis_threshold=0.1, use_diagonal=False, nonblocking=True):
+    def __init__(self, vendor_id, product_id, mode=DeviceMode.DINPUT, axis_threshold=0.1, nonblocking=True):
         self.vendor_id = vendor_id
         self.product_id = product_id
         self.mode = mode
         self.axis_threshold = axis_threshold
-        self.use_diagonal = use_diagonal
         self.nonblocking = nonblocking
         self.device = hid.device()
         self.device.open(self.vendor_id, self.product_id)
@@ -24,9 +23,6 @@ class HIDDevice:
         return self.device.read(size)
     
     def _read_states_dinput(self, raw: list[int]) -> list[ButtonEvent]:
-        if self.use_diagonal:
-            raise NotImplementedError("use_diagonal is not implemented for dinput yet")
-
         events: list[ButtonEvent] = []
         states: dict[ButtonType, bool] = {}
 
@@ -63,34 +59,32 @@ class HIDDevice:
         # raw[4] 136 means Y
         # other combinations exists (ex: 200 means Y + B, 70 means LEFT + B)
 
-        arrow_bit_raw = raw[4] & 0x7
-        if raw[4] == 0x8:
-            arrow_bit = 0x0
-        else:
-            arrow_bit = arrow_bit_raw + 0x1
-        # 0x7 = 0b111
-        abxy_bit = (raw[4] + arrow_bit_raw) & 0xf8 - 0x8
-        # 0xf8 = 0b111111000
+        arrow_bit = raw[4] & 0xf
+        abxy_bit = raw[4] & 0xf0
 
         # print(f"abxy_bit: {abxy_bit}")
         # print(f"arrow_bit: {arrow_bit}")
+
+        ## print raw[4] as binary
+        # print(f"raw[4]: {raw[4]:08b}")
 
         states[ButtonType.X] = bool(abxy_bit & 0x10)
         states[ButtonType.A] = bool(abxy_bit & 0x20)
         states[ButtonType.B] = bool(abxy_bit & 0x40)
         states[ButtonType.Y] = bool(abxy_bit & 0x80)
 
-
-        states[ButtonType.UP] = bool(arrow_bit == 0x01 or arrow_bit == 0x02 or arrow_bit == 0x08)
-        states[ButtonType.RIGHT] = bool(arrow_bit == 0x02 or arrow_bit == 0x03 or arrow_bit == 0x04)
-        states[ButtonType.DOWN] = bool(arrow_bit == 0x04 or arrow_bit == 0x05 or arrow_bit == 0x06)
-        states[ButtonType.LEFT] = bool(arrow_bit == 0x06 or arrow_bit == 0x07 or arrow_bit == 0x08)
+        states[ButtonType.UP] = bool(arrow_bit == 0x00 or arrow_bit == 0x01 or arrow_bit == 0x07)
+        states[ButtonType.RIGHT] = bool(arrow_bit == 0x01 or arrow_bit == 0x02 or arrow_bit == 0x03)
+        states[ButtonType.DOWN] = bool(arrow_bit == 0x03 or arrow_bit == 0x04 or arrow_bit == 0x05)
+        states[ButtonType.LEFT] = bool(arrow_bit == 0x05 or arrow_bit == 0x06 or arrow_bit == 0x07)
 
 
         states[ButtonType.L] = bool(raw[5] & 0x1)
         states[ButtonType.R] = bool(raw[5] & 0x2)
         states[ButtonType.ZL] = bool(raw[5] & 0x4)
         states[ButtonType.ZR] = bool(raw[5] & 0x8)
+        states[ButtonType.ANALOG_L_PRESS] = bool(raw[5] & 0x40)
+        states[ButtonType.ANALOG_R_PRESS] = bool(raw[5] & 0x80)
 
         states[ButtonType.SELECT] = bool(raw[5] & 0x10)
         states[ButtonType.START] = bool(raw[5] & 0x20)
@@ -115,6 +109,9 @@ class HIDDevice:
     def _read_states_joycon(self, raw: list[int]) -> list[ButtonEvent]:
         raise NotImplementedError
     
+    def _read_states_switch_pro(self, raw: list[int]) -> list[ButtonEvent]:
+        raise NotImplementedError
+    
     def read_events(self) -> list[ButtonEvent]:
         raw = self.read_raw()
 
@@ -127,6 +124,10 @@ class HIDDevice:
             return self._read_states_xinput(raw)
         elif self.mode == DeviceMode.JOYCON:
             return self._read_states_joycon(raw)
+        elif self.mode == DeviceMode.SWITCH_PRO:
+            return self._read_states_switch_pro(raw)
+        else:
+            raise NotImplementedError(f"Unknown mode: {self.mode}")
         
     def read_events_with_raw(self) -> tuple[list[ButtonEvent], list[int]]:
         raw = self.read_raw()
@@ -140,6 +141,10 @@ class HIDDevice:
             return (self._read_states_xinput(raw), raw)
         elif self.mode == DeviceMode.JOYCON:
             return (self._read_states_joycon(raw), raw)
+        elif self.mode == DeviceMode.SWITCH_PRO:
+            return (self._read_states_switch_pro(raw), raw)
+        else:
+            raise NotImplementedError(f"Unknown mode: {self.mode}")
         
     # def read_states(self) -> dict[ButtonType, bool]:
     #     self.read_events()

@@ -20,10 +20,10 @@ class HIDDeviceManager:
         return False
     
     def get_device(self, vendor_id, product_id, mode=DeviceMode.DINPUT,
-                   axis_threshold=0.1,
-                   use_diagonal=False, nonblocking=True) -> HIDDevice:
+                   axis_threshold=0.1, nonblocking=True) -> HIDDevice:
         if self.has_device(vendor_id, product_id):
-            return HIDDevice(vendor_id, product_id, mode, axis_threshold, use_diagonal, nonblocking)
+            return HIDDevice(vendor_id, product_id, mode,
+                            axis_threshold, nonblocking)
         else:
             return None
 

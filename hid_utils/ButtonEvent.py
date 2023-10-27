@@ -6,4 +6,7 @@ class ButtonEvent:
         self.state = state
 
     def __str__(self):
-        return f"ButtonEvent({self.button_type}, {self.state})"
+        button_type_str = f"{self.button_type}"
+        # remove ButtonType.
+        button_type_str = button_type_str[button_type_str.find(".")+1:]
+        return f"ButtonEvent({button_type_str}, {self.state})"
