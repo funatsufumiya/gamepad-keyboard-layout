@@ -1,28 +1,29 @@
 import hid
 import sys
 import functools
-from . import HIDDevice, DeviceMode as _DeviceMode
+from .HIDDevice import HIDDevice
+from .DeviceMode import DeviceMode
 print = functools.partial(print, flush=True)
-
-Mode = _DeviceMode.DeviceMode
 
 class HIDDeviceManager:
     _devices = []
 
-    def get_devices(self):
+    def get_devices(self) -> list[dict]:
         if len(self._devices) == 0:
             self._update_devices()
         return self._devices
     
-    def has_device(self, vendor_id, product_id):
+    def has_device(self, vendor_id, product_id) -> bool:
         for device in self.get_devices():
             if device['vendor_id'] == vendor_id and device['product_id'] == product_id:
                 return True
         return False
     
-    def get_device(self, vendor_id, product_id, mode=Mode.DINPUT, nonblocking=True):
+    def get_device(self, vendor_id, product_id, mode=DeviceMode.DINPUT,
+                   axis_threshold=0.1,
+                   use_diagonal=False, nonblocking=True) -> HIDDevice:
         if self.has_device(vendor_id, product_id):
-            return HIDDevice.HIDDevice(vendor_id, product_id, mode, nonblocking)
+            return HIDDevice(vendor_id, product_id, mode, axis_threshold, use_diagonal, nonblocking)
         else:
             return None
 

@@ -1,6 +1,5 @@
-from . import HIDDeviceManager as _HIDDeviceManager
-from . import HIDDevice as _HIDDevice
-from . import DeviceMode as _DeviceMode
-HIDDeviceManager = _HIDDeviceManager.HIDDeviceManager
-HIDDevice = _HIDDevice.HIDDevice
-DeviceMode = _DeviceMode.DeviceMode
+from .HIDDeviceManager import HIDDeviceManager
+from .HIDDevice import HIDDevice
+from .DeviceMode import DeviceMode
+from .ButtonType import ButtonType
+from .ButtonEvent import ButtonEvent
