@@ -1,7 +1,7 @@
 import argparse
 import hid
 from enum import Enum
-from hid_utils import HIDDeviceManager, DeviceMode as Mode, JoyConType
+from hid_utils import HIDDeviceManager, DeviceMode as Mode, JoyConType, AxisType
 import sys
 import functools
 print = functools.partial(print, flush=True)
@@ -16,6 +16,8 @@ parser.add_argument('-m','--mode', type=str, choices=mode_names,
                      default=Mode.DINPUT.name, help='mode')
 parser.add_argument('-t','--threshold', type=float, default=0.3, help='axis threshold')
 parser.add_argument('-vv','--verbose', action='store_true', help='verbose')
+parser.add_argument('-de','--debug-event', action='store_true', help='debug events')
+parser.add_argument('-da','--debug-axis', action='store_true', help='debug axis values')
 parser.add_argument('-v','--version', action='version', version='%(prog)s 0.0.1', help='show version')
 args = parser.parse_args()
 
@@ -25,6 +27,9 @@ mode = Mode.from_str(args.mode)
 
 is_verbose = args.verbose
 axis_threshold = args.threshold
+
+is_debug_event = args.debug_event
+is_debug_axis = args.debug_axis
 
 # for device in hid.enumerate():
 #     print(f"0x{device['vendor_id']:04x}:0x{device['product_id']:04x} {device['product_string']}")
@@ -87,6 +92,8 @@ else:
 
     gamepad = manager.get_device(vendor_id, product_id, mode, axis_threshold=axis_threshold)
 
+axis_value_dict: dict[AxisType, float] = {}
+
 while True:
     if mode == Mode.JOYCON:
         l_events, l_raw = joycon_l.read_events_with_raw()
@@ -101,6 +108,7 @@ while True:
                 print(f"JOYCON_R raw: {r_raw_str}")
 
         events = l_events + r_events
+        axis_value_dict = joycon_l.get_axis_values() | joycon_r.get_axis_values()
 
         # for event in l_events:
         #     print(f"JOYCON_L {event}")
@@ -109,13 +117,16 @@ while True:
 
     else:
         events, raw = gamepad.read_events_with_raw()
+        axis_value_dict = gamepad.get_axis_values()
         if is_verbose:
             if raw:
                 # print(raw)
                 print(" ".join([f"{x:03d}" for x in raw]))
 
+    if is_debug_event:
         for event in events:
             print(event)
 
-    for event in events:
-        print(event)
+    if is_debug_axis:
+        for axis_type, value in axis_value_dict.items():
+            print(f"{axis_type}: {value}")

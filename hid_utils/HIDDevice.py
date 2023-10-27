@@ -4,11 +4,13 @@ from .DeviceMode import DeviceMode
 from .ButtonEvent import ButtonEvent
 from .ButtonType import ButtonType
 from .JoyConType import JoyConType
+from .AxisType import AxisType
 import functools
 print = functools.partial(print, flush=True)
 
 class HIDDevice:
     button_state_dict: dict[ButtonType, bool] = {}
+    axis_value_dict: dict[AxisType, float] = {}
 
     def __init__(self, vendor_id, product_id,
                  mode=DeviceMode.DINPUT,
@@ -51,6 +53,11 @@ class HIDDevice:
         # NOTE: raw[3] is ANALOG R up-down axis, up is 0x00, down is 0xff, center is 0x80
         states[ButtonType.ANALOG_R_UP] = bool(raw[3] < 0x80 - 0x80 * self.axis_threshold)
         states[ButtonType.ANALOG_R_DOWN] = bool(raw[3] > 0x80 + 0x80 * self.axis_threshold)
+
+        self.axis_value_dict[AxisType.ANALOG_L_RIGHT] = raw[0] / 0xff
+        self.axis_value_dict[AxisType.ANALOG_L_DOWN] = raw[1] / 0xff
+        self.axis_value_dict[AxisType.ANALOG_R_RIGHT] = raw[2] / 0xff
+        self.axis_value_dict[AxisType.ANALOG_R_DOWN] = raw[3] / 0xff
 
         # NOTE
         # raw[4] default value is 0x8
@@ -168,6 +175,14 @@ class HIDDevice:
         states[ButtonType.ANALOG_L_LEFT] = bool(left_rate > self.axis_threshold)
         states[ButtonType.ANALOG_L_RIGHT] = bool(right_rate > self.axis_threshold)
 
+        # clip each rates to 0.0 ~ 1.0 (ignore negative values)
+        up_rate_clip = min(max(up_rate, 0.0), 1.0)
+        down_rate_clip = min(max(down_rate, 0.0), 1.0)
+        left_rate_clip = min(max(left_rate, 0.0), 1.0)
+        right_rate_clip = min(max(right_rate, 0.0), 1.0)
+        self.axis_value_dict[AxisType.ANALOG_L_DOWN] = (down_rate_clip - up_rate_clip) / 2.0 + 0.5
+        self.axis_value_dict[AxisType.ANALOG_L_RIGHT] = (right_rate_clip - left_rate_clip) / 2.0 + 0.5
+
         # print rates
         # print(f"up_rate: {up_rate}")
         # print(f"down_rate: {down_rate}")
@@ -237,6 +252,14 @@ class HIDDevice:
         right_rate = (right_horizontal - right_horizontal_center) / (right_horizontal_max - right_horizontal_center)
         states[ButtonType.ANALOG_R_LEFT] = bool(left_rate > self.axis_threshold)
         states[ButtonType.ANALOG_R_RIGHT] = bool(right_rate > self.axis_threshold)
+
+        # clip each rates to 0.0 ~ 1.0 (ignore negative values)
+        up_rate_clip = min(max(up_rate, 0.0), 1.0)
+        down_rate_clip = min(max(down_rate, 0.0), 1.0)
+        left_rate_clip = min(max(left_rate, 0.0), 1.0)
+        right_rate_clip = min(max(right_rate, 0.0), 1.0)
+        self.axis_value_dict[AxisType.ANALOG_R_DOWN] = (down_rate_clip - up_rate_clip) / 2.0 + 0.5
+        self.axis_value_dict[AxisType.ANALOG_R_RIGHT] = (right_rate_clip - left_rate_clip) / 2.0 + 0.5
         
         # print rates
         # print(f"up_rate: {up_rate}")
@@ -312,5 +335,11 @@ class HIDDevice:
     def get_states(self) -> dict[ButtonType, bool]:
         return self.button_state_dict
     
-    def is_on(self, button_type: ButtonType) -> bool:
+    def get_axis_values(self) -> dict[AxisType, float]:
+        return self.axis_value_dict
+    
+    def get_state(self, button_type: ButtonType) -> bool:
         return self.button_state_dict[button_type]
+    
+    def get_axis_value(self, axis_type: AxisType) -> float:
+        return self.axis_value_dict[axis_type]
