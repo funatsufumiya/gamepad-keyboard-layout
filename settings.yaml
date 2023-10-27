@@ -2,4 +2,6 @@ use_ctrl_space_for_kanji_key: true
 long_press_threshold_sec: 0.2
 software_key_repeat_enabled: true
 software_key_repeat_delay_sec_first: 0.3
-software_key_repeat_delay_sec: 0.07
+software_key_repeat_delay_sec: 0.06
+# jp_input_mode: FLICK
+jp_input_mode: ROMAJI
