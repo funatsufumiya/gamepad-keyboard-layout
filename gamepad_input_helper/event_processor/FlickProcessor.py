@@ -2,7 +2,7 @@ import time
 from enum import Enum
 
 from .EventProcessor import EventProcessor
-from ..out_events import OutEvent, DebugOut, KeyPress, KeyDown, KeyUp, TypeWrite, HotKey
+from ..out_events import OutEvent, DebugPrint, KeyPress, KeyDown, KeyUp, TypeWrite, HotKey
 from hid_utils import ButtonEvent, AxisType, ButtonType
 
 class FlickProcessor(EventProcessor):
@@ -107,16 +107,16 @@ class FlickProcessor(EventProcessor):
                 if not self.pre_star_flag:
                     self.pre_star_flag = True
                     self.star_press_started_time = time.time()
-                    add_oev(DebugOut("star on"))
+                    add_oev(DebugPrint("star on"))
                 elif self.pre_star_flag:
                     self.pre_star_flag = False
                     self.star_press_started_time = None
-                    add_oev(DebugOut("star off"))
+                    add_oev(DebugPrint("star off"))
             elif bt == ButtonType.L and st == False:
                 if self.is_star_long_pressing:
                     self.pre_star_flag = False
                     self.star_press_started_time = None
-                    add_oev(DebugOut("star off"))
+                    add_oev(DebugPrint("star off"))
             
             is_star = self.pre_star_flag or self.is_star_long_pressing
 
@@ -430,7 +430,7 @@ class FlickProcessor(EventProcessor):
                 if st == False and bt != ButtonType.L:
                     self.pre_star_flag = False
                     self.star_press_started_time = None
-                    add_oev(DebugOut("star off"))
+                    add_oev(DebugPrint("star off"))
 
         # Star long press
         self.prev_is_star_long_pressing = self.is_star_long_pressing
@@ -442,4 +442,4 @@ class FlickProcessor(EventProcessor):
             )
         )
         if self.is_star_long_pressing and not self.prev_is_star_long_pressing:
-            add_oev(DebugOut("star long press"))
+            add_oev(DebugPrint("star long press"))

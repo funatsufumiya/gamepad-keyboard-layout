@@ -1,6 +1,6 @@
 import time
 from .EventProcessor import EventProcessor
-from ..out_events import OutEvent, DebugOut, KeyPress, KeyDown, KeyUp, TypeWrite, HotKey
+from ..out_events import OutEvent, DebugPrint, KeyPress, KeyDown, KeyUp, TypeWrite, HotKey
 from hid_utils import ButtonEvent, AxisType, ButtonType
 
 class RomajiProcessor(EventProcessor):
@@ -39,32 +39,32 @@ class RomajiProcessor(EventProcessor):
                 if not self.pre_shift_flag:
                     self.pre_shift_flag = True
                     self.shift_press_started_time = time.time()
-                    add_oev(DebugOut("shift on"))
+                    add_oev(DebugPrint("shift on"))
                 elif self.pre_shift_flag:
                     self.pre_shift_flag = False
                     self.shift_press_started_time = None
-                    add_oev(DebugOut("shift off"))
+                    add_oev(DebugPrint("shift off"))
             elif bt == ButtonType.ZL and st == False:
                 if self.is_shift_long_pressing:
                     self.pre_shift_flag = False
                     self.shift_press_started_time = None
-                    add_oev(DebugOut("shift off"))
+                    add_oev(DebugPrint("shift off"))
 
             # Star button
             if bt == ButtonType.L and st == True:
                 if not self.pre_star_flag:
                     self.pre_star_flag = True
                     self.star_press_started_time = time.time()
-                    add_oev(DebugOut("star on"))
+                    add_oev(DebugPrint("star on"))
                 elif self.pre_star_flag:
                     self.pre_star_flag = False
                     self.star_press_started_time = None
-                    add_oev(DebugOut("star off"))
+                    add_oev(DebugPrint("star off"))
             elif bt == ButtonType.L and st == False:
                 if self.is_star_long_pressing:
                     self.pre_star_flag = False
                     self.star_press_started_time = None
-                    add_oev(DebugOut("star off"))
+                    add_oev(DebugPrint("star off"))
 
             is_shift = self.pre_shift_flag or self.is_shift_long_pressing
             is_star = self.pre_star_flag or self.is_star_long_pressing
@@ -168,14 +168,14 @@ class RomajiProcessor(EventProcessor):
                 if st == False and bt != ButtonType.ZL:
                     self.pre_shift_flag = False
                     self.shift_press_started_time = None
-                    add_oev(DebugOut("shift off"))
+                    add_oev(DebugPrint("shift off"))
 
             # Star off when any button released
             if not self.is_star_long_pressing and self.pre_star_flag:
                 if st == False and bt != ButtonType.L:
                     self.pre_star_flag = False
                     self.star_press_started_time = None
-                    add_oev(DebugOut("star off"))
+                    add_oev(DebugPrint("star off"))
 
         # Shift long press
         self.prev_is_shift_long_pressing = self.is_shift_long_pressing
@@ -187,7 +187,7 @@ class RomajiProcessor(EventProcessor):
             )
         )
         if self.is_shift_long_pressing and not self.prev_is_shift_long_pressing:
-            add_oev(DebugOut("shift long press"))
+            add_oev(DebugPrint("shift long press"))
 
         # Star long press
         self.prev_is_star_long_pressing = self.is_star_long_pressing
@@ -199,6 +199,6 @@ class RomajiProcessor(EventProcessor):
             )
         )
         if self.is_star_long_pressing and not self.prev_is_star_long_pressing:
-            add_oev(DebugOut("star long press"))
+            add_oev(DebugPrint("star long press"))
 
         

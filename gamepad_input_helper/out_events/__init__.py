@@ -4,7 +4,7 @@ from ..SoftwareKeyRepeatManager import SoftwareKeyRepeatManager
 class OutEvent:
     pass
 
-class DebugOut(OutEvent):
+class DebugPrint(OutEvent):
     def __init__(self, msg: str):
         self.msg = msg
 
@@ -12,7 +12,7 @@ class DebugOut(OutEvent):
         pass
 
     def __str__(self):
-        return f"Debug({self.msg})"
+        return f"DebugPrint({self.msg})"
     
 
 class KeyPress(OutEvent):
