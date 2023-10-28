@@ -21,10 +21,11 @@ class LayerModeState(metaclass=Singleton):
     def get_symbol_mode(self):
         return self._symbol_mode
     
-    def set_layer_mode(self, layer_mode: LayerMode, properties: dict[str, Any] = {}):
+    # def set_layer_mode(self, layer_mode: LayerMode, properties: dict[str, Any] = {}):
+    def set_layer_mode(self, layer_mode: LayerMode):
         self._layer_mode = layer_mode
-        from .event_processor import EventProcessorManager
-        EventProcessorManager.get_singleton().get_event_processor_by_layer_mode(layer_mode).set_properties(properties)
+        # from .event_processor import EventProcessorManager
+        # EventProcessorManager.get_singleton().get_event_processor_by_layer_mode(layer_mode).set_properties(properties)
 
     def set_jp_input_mode(self, jp_input_mode: JPInputMode):
         self._jp_input_mode = jp_input_mode

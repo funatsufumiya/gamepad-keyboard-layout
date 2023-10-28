@@ -181,12 +181,12 @@ event_processor_manager.add_event_processor(
                     flick_axis_threshold=flick_axis_threshold,
                     flick_dakuten_double_backspace=flick_dakuten_double_backspace))
 
-jp_processor_type = RomajiProcessor if layer_mode_state.get_jp_input_mode() == JPInputMode.ROMAJI else FlickProcessor
+# jp_processor_type = RomajiProcessor if layer_mode_state.get_jp_input_mode() == JPInputMode.ROMAJI else FlickProcessor
 
-event_processor_manager.set_layer_mode_mappings({
-    LayerMode.KEYBOARD_JP: jp_processor_type,
-    LayerMode.KEYBOARD_EN: EnglishProcessor
-})
+# event_processor_manager.set_layer_mode_mappings({
+#     LayerMode.KEYBOARD_JP: jp_processor_type,
+#     LayerMode.KEYBOARD_EN: EnglishProcessor
+# })
 
 def software_key_repeat_manager_thread():
     while True:
@@ -251,7 +251,17 @@ try:
             print("-------")
 
         # Process events
-        event_processor_manager.get_event_processor_by_layer_mode(layer_mode_state.get_layer_mode()).process(events, axis_dict, state_dict)
+        # event_processor_manager.get_event_processor_by_layer_mode(layer_mode_state.get_layer_mode()).process(events, axis_dict, state_dict)
+
+        if layer_mode_state.get_layer_mode() == LayerMode.KEYBOARD_JP:
+            if layer_mode_state.get_jp_input_mode() == JPInputMode.ROMAJI:
+                event_processor_manager.get_event_processor(RomajiProcessor).process(events, axis_dict, state_dict)
+            elif layer_mode_state.get_jp_input_mode() == JPInputMode.FLICK:
+                event_processor_manager.get_event_processor(FlickProcessor).process(events, axis_dict, state_dict)
+            else:
+                raise ValueError(f"Unknown JPInputMode: {layer_mode_state.get_jp_input_mode()}")
+        else:
+            event_processor_manager.get_event_processor(EnglishProcessor).process(events, axis_dict, state_dict)
 
         out_event_manager.process_events()
 

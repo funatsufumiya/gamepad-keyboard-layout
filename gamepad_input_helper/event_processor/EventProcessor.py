@@ -16,9 +16,9 @@ class EventProcessor():
     def _add_out_event(self, event):
         self.out_event_manager.add_event(event)
 
-    def set_property(self, key, value):
-        raise NotImplementedError()
+    # def set_property(self, key, value):
+    #     raise NotImplementedError()
     
-    def set_properties(self, properties: dict[str, Any]):
-        for key, value in properties.items():
-            self.set_property(key, value)
+    # def set_properties(self, properties: dict[str, Any]):
+    #     for key, value in properties.items():
+    #         self.set_property(key, value)
