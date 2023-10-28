@@ -48,7 +48,7 @@ class FlickProcessor(EventProcessor):
             return state_dict[axis_type]
         
         is_hat_down = get_value(ButtonType.DOWN)
-        is_hat_left = get_value(ButtonType.LEFT)
+        is_hat_right = get_value(ButtonType.RIGHT)
 
         is_left = get_value(ButtonType.ANALOG_L_LEFT)
         is_right = get_value(ButtonType.ANALOG_L_RIGHT)
@@ -60,7 +60,7 @@ class FlickProcessor(EventProcessor):
 
         if is_hat_down:
             return self.FlickState.WA
-        elif is_hat_left:
+        elif is_hat_right:
             return self.FlickState.SYMBOL
 
         if is_center:
@@ -126,33 +126,43 @@ class FlickProcessor(EventProcessor):
                     if bt == ButtonType.Y:
                         self.pressing_dict["backspace"] = True
                         add_oev(KeyDown("backspace", repeat=True))
+                        set("","")
                     elif bt == ButtonType.X:
                         # kanji
                         if self.use_ctrl_space_for_kanji_key:
                             add_oev(HotKey("ctrl", "space"))
                         else:
                             add_oev(KeyPress("kanji"))
+                        set("","")
 
                     elif bt == ButtonType.B:
                         add_oev(KeyPress("space"))
+                        set("","")
 
                     elif bt == ButtonType.A:
                         add_oev(KeyPress("enter"))
+                        set("","")
 
                     elif bt == ButtonType.LEFT:
-                        # dakuten
+                        # dakuten / komoji
                         def process_dakuten():
                             v = self.current_input_vowel
                             c = self.current_input_consonant
 
-                            if v == "":
-                                return
-                            
                             if c == "":
                                 return
                             
-                            nv = ""
-                            if v == "k":
+                            nv = None
+
+                            # special case
+                            if v == "t" and c == "u":
+                                nv = "xt"
+                            elif v == "xt" and c == "u":
+                                nv = "d"
+                            elif v == "d" and c == "u":
+                                nv = "t"
+                            # dakuten
+                            elif v == "k":
                                 nv = "g"
                             elif v == "s":
                                 nv = "z"
@@ -160,6 +170,11 @@ class FlickProcessor(EventProcessor):
                                 nv = "d"
                             elif v == "h":
                                 nv = "b"
+                            # komoji
+                            elif v == "":
+                                nv = "x"
+                            elif v == "y":
+                                nv = "xy"
                             # handakuten
                             elif v == "b":
                                 nv = "p"
@@ -174,8 +189,12 @@ class FlickProcessor(EventProcessor):
                                 nv = "t"
                             elif v == "b":
                                 nv = "h"
+                            elif v == "x":
+                                nv = ""
+                            elif v == "xy":
+                                nv = "y"
 
-                            if nv == "":
+                            if nv is None:
                                 return
                             
                             self.current_input_vowel = nv
@@ -383,12 +402,16 @@ class FlickProcessor(EventProcessor):
                 if st == True:
                     if bt == ButtonType.RIGHT:
                         add_oev(KeyPress("right"))
+                        set("","")
                     elif bt == ButtonType.DOWN:
                         add_oev(KeyPress("down"))
+                        set("","")
                     elif bt == ButtonType.LEFT:
                         add_oev(KeyPress("left"))
+                        set("","")
                     elif bt == ButtonType.UP:
                         add_oev(KeyPress("up"))
+                        set("","")
 
 
             # Star off when any button released
