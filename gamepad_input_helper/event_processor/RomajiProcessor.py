@@ -60,6 +60,11 @@ class RomajiProcessor(EventProcessor):
                     self.pre_star_flag = False
                     self.star_press_started_time = None
                     add_oev(DebugOut("star off"))
+            elif bt == ButtonType.L and st == False:
+                if self.is_star_long_pressing:
+                    self.pre_star_flag = False
+                    self.star_press_started_time = None
+                    add_oev(DebugOut("star off"))
 
             is_shift = self.pre_shift_flag or self.is_shift_long_pressing
             is_star = self.pre_star_flag or self.is_star_long_pressing
@@ -147,11 +152,11 @@ class RomajiProcessor(EventProcessor):
                     elif bt == ButtonType.ZR:
                         add_oev(KeyPress("-"))
                     elif bt == ButtonType.R:
+                        # kanji
                         if self.use_ctrl_space_for_kanji_key:
                             add_oev(HotKey("ctrl","space"))
                         else:
                             add_oev(KeyPress("kanji"))
-                        # add_oev(KeyPress("l"))
 
             if st == False and bt == ButtonType.SELECT:
                 if "backspace" in self.pressing_dict and self.pressing_dict["backspace"]:
@@ -181,6 +186,19 @@ class RomajiProcessor(EventProcessor):
                 and time.time() - self.shift_press_started_time > self.long_press_threshold_sec
             )
         )
-
         if self.is_shift_long_pressing and not self.prev_is_shift_long_pressing:
             add_oev(DebugOut("shift long press"))
+
+        # Star long press
+        self.prev_is_star_long_pressing = self.is_star_long_pressing
+        self.is_star_long_pressing = (
+            bool(ButtonType.L in state_dict and state_dict[ButtonType.L])
+            and (
+                self.star_press_started_time is not None
+                and time.time() - self.star_press_started_time > self.long_press_threshold_sec
+            )
+        )
+        if self.is_star_long_pressing and not self.prev_is_star_long_pressing:
+            add_oev(DebugOut("star long press"))
+
+        

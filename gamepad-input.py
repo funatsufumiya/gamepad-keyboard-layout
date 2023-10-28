@@ -7,10 +7,12 @@ import threading
 import argparse
 import pyautogui
 from enum import Enum
+
 from hid_utils import HIDDeviceManager, DeviceMode, JoyConType, AxisType, ButtonType
 from gamepad_input_helper import SoftwareKeyRepeatManager, DebugState
 from gamepad_input_helper.modes import LayerMode, JPInputMode, SymbolMode
 from gamepad_input_helper.event_processor import OutEventManager, RomajiProcessor, FlickProcessor
+
 import functools
 print = functools.partial(print, flush=True)
 
@@ -150,6 +152,7 @@ symbol_mode = SymbolMode.DEFAULT
 
 long_press_threshold_sec = get_setting_or('long_press_threshold_sec', 0.5)
 use_ctrl_space_for_kanji_key = get_setting_or('use_ctrl_space_for_kanji_key', False)
+flick_dakuten_double_backspace = get_setting_or('flick_dakuten_double_backspace', False)
 
 out_event_manager = OutEventManager()
 romaji_processor = RomajiProcessor(out_event_manager,
@@ -158,7 +161,8 @@ romaji_processor = RomajiProcessor(out_event_manager,
 
 flick_processor = FlickProcessor(out_event_manager,
                                  use_ctrl_space_for_kanji_key=use_ctrl_space_for_kanji_key,
-                                 long_press_threshold_sec=long_press_threshold_sec)
+                                 long_press_threshold_sec=long_press_threshold_sec,
+                                 flick_dakuten_double_backspace=flick_dakuten_double_backspace)
 
 def software_key_repeat_manager_thread():
     while True:
