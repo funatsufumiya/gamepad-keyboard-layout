@@ -316,7 +316,13 @@ class FlickProcessor(EventProcessor):
                             add_oev(TypeWrite("nn"))
                             set("n","n")
                         elif fs == FS.SYMBOL:
-                            add_oev(HotKey("shift","/")) # ?
+                            # add_oev(HotKey("shift","/")) # ?
+
+                            # ?
+                            add_oev(KeyDown("shift"))
+                            add_oev(KeyPress("/")) 
+                            add_oev(KeyUp("shift"))
+                            set("","")
 
                     elif bt == ButtonType.ANALOG_R_RIGHT:
                         # flick right
@@ -352,7 +358,12 @@ class FlickProcessor(EventProcessor):
                             add_oev(KeyPress("-"))
                             set("","")
                         elif fs == FS.SYMBOL:
-                            add_oev(HotKey("shift","1")) # !
+                            # add_oev(HotKey("shift","1")) # !
+
+                            # !
+                            add_oev(KeyDown("shift"))
+                            add_oev(KeyPress("1"))
+                            add_oev(KeyUp("shift"))
                             set("","")
 
                     elif bt == ButtonType.ANALOG_R_DOWN:

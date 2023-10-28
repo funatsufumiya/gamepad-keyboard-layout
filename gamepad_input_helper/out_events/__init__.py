@@ -49,8 +49,10 @@ class KeyUp(OutEvent):
         return f"KeyUp({self.key})"
     
 class TypeWrite(OutEvent):
-    def __init__(self, text: str, interval: float = 0.001):
+    def __init__(self, text: str, interval = None):
         self.text = text
+        if interval is None:
+            interval = pyautogui.PAUSE
         self.interval = interval
 
     def execute(self):
