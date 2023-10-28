@@ -24,7 +24,7 @@ class RomajiProcessor(EventProcessor):
 
     def process(self,
             events: list[ButtonEvent],
-            axis_value_dict: dict[AxisType, float],
+            axis_dict: dict[AxisType, float],
             state_dict: dict[ButtonType, bool]
         ):
 

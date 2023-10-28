@@ -10,7 +10,7 @@ print = functools.partial(print, flush=True)
 
 class HIDDevice:
     button_state_dict: dict[ButtonType, bool] = {}
-    axis_value_dict: dict[AxisType, float] = {}
+    axis_dict: dict[AxisType, float] = {}
 
     def __init__(self, vendor_id, product_id,
                  mode=DeviceMode.DINPUT,
@@ -54,10 +54,10 @@ class HIDDevice:
         states[ButtonType.ANALOG_R_UP] = bool(raw[3] < 0x80 - 0x80 * self.axis_threshold)
         states[ButtonType.ANALOG_R_DOWN] = bool(raw[3] > 0x80 + 0x80 * self.axis_threshold)
 
-        self.axis_value_dict[AxisType.ANALOG_L_RIGHT] = raw[0] / 0xff
-        self.axis_value_dict[AxisType.ANALOG_L_DOWN] = raw[1] / 0xff
-        self.axis_value_dict[AxisType.ANALOG_R_RIGHT] = raw[2] / 0xff
-        self.axis_value_dict[AxisType.ANALOG_R_DOWN] = raw[3] / 0xff
+        self.axis_dict[AxisType.ANALOG_L_RIGHT] = raw[0] / 0xff
+        self.axis_dict[AxisType.ANALOG_L_DOWN] = raw[1] / 0xff
+        self.axis_dict[AxisType.ANALOG_R_RIGHT] = raw[2] / 0xff
+        self.axis_dict[AxisType.ANALOG_R_DOWN] = raw[3] / 0xff
 
         # NOTE
         # raw[4] default value is 0x8
@@ -180,8 +180,8 @@ class HIDDevice:
         down_rate_clip = min(max(down_rate, 0.0), 1.0)
         left_rate_clip = min(max(left_rate, 0.0), 1.0)
         right_rate_clip = min(max(right_rate, 0.0), 1.0)
-        self.axis_value_dict[AxisType.ANALOG_L_DOWN] = (down_rate_clip - up_rate_clip) / 2.0 + 0.5
-        self.axis_value_dict[AxisType.ANALOG_L_RIGHT] = (right_rate_clip - left_rate_clip) / 2.0 + 0.5
+        self.axis_dict[AxisType.ANALOG_L_DOWN] = (down_rate_clip - up_rate_clip) / 2.0 + 0.5
+        self.axis_dict[AxisType.ANALOG_L_RIGHT] = (right_rate_clip - left_rate_clip) / 2.0 + 0.5
 
         # print rates
         # print(f"up_rate: {up_rate}")
@@ -258,8 +258,8 @@ class HIDDevice:
         down_rate_clip = min(max(down_rate, 0.0), 1.0)
         left_rate_clip = min(max(left_rate, 0.0), 1.0)
         right_rate_clip = min(max(right_rate, 0.0), 1.0)
-        self.axis_value_dict[AxisType.ANALOG_R_DOWN] = (down_rate_clip - up_rate_clip) / 2.0 + 0.5
-        self.axis_value_dict[AxisType.ANALOG_R_RIGHT] = (right_rate_clip - left_rate_clip) / 2.0 + 0.5
+        self.axis_dict[AxisType.ANALOG_R_DOWN] = (down_rate_clip - up_rate_clip) / 2.0 + 0.5
+        self.axis_dict[AxisType.ANALOG_R_RIGHT] = (right_rate_clip - left_rate_clip) / 2.0 + 0.5
         
         # print rates
         # print(f"up_rate: {up_rate}")
@@ -336,10 +336,10 @@ class HIDDevice:
         return self.button_state_dict
     
     def get_axis_values(self) -> dict[AxisType, float]:
-        return self.axis_value_dict
+        return self.axis_dict
     
     def get_state(self, button_type: ButtonType) -> bool:
         return self.button_state_dict[button_type]
     
     def get_axis_value(self, axis_type: AxisType) -> float:
-        return self.axis_value_dict[axis_type]
+        return self.axis_dict[axis_type]

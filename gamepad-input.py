@@ -24,7 +24,7 @@ parser.add_argument('-i','--vendor', type=lambda x: int(x,0), default=0x046d, he
 parser.add_argument('-p','--product', type=lambda x: int(x,0), default=0xc216, help='product id')
 parser.add_argument('-m','--device-mode', type=str, choices=mode_names,
                      default=DeviceMode.DINPUT.name, help='device mode')
-parser.add_argument('-t','--threshold', type=float, default=0.5, help='axis threshold')
+# parser.add_argument('-t','--threshold', type=float, default=0.5, help='axis threshold')
 parser.add_argument('-s','--settings-file', type=str, default="settings.yaml", help='settings file')
 parser.add_argument('-vv','--verbose', action='store_true', help='verbose')
 parser.add_argument('-d','--debug', action='store_true', help='debug')
@@ -42,7 +42,7 @@ is_debug = args.debug
 is_verbose = args.verbose
 DebugState.set_debug(is_debug)
 DebugState.set_verbose(is_verbose)
-axis_threshold = args.threshold
+# axis_threshold = args.threshold
 
 is_debug_event = args.debug_event
 is_debug_axis = args.debug_axis
@@ -62,6 +62,8 @@ def get_setting_or(key: str, default: any):
         return _settings[key]
     else:
         return default
+    
+axis_threshold = get_setting_or('axis_threshold', 0.3)
 
 if is_debug:
     print(f"settings: {_settings}")
@@ -127,7 +129,7 @@ else:
 
     gamepad = manager.get_device(vendor_id, product_id, device_mode, axis_threshold=axis_threshold)
 
-axis_value_dict: dict[AxisType, float] = {}
+axis_dict: dict[AxisType, float] = {}
 state_dict: dict[ButtonType, bool] = {}
 
 software_key_repeat_enabled = get_setting_or('software_key_repeat_enabled', False)
@@ -152,6 +154,7 @@ symbol_mode = SymbolMode.DEFAULT
 
 long_press_threshold_sec = get_setting_or('long_press_threshold_sec', 0.5)
 use_ctrl_space_for_kanji_key = get_setting_or('use_ctrl_space_for_kanji_key', False)
+flick_axis_threshold = get_setting_or('flick_axis_threshold', 0.3)
 flick_dakuten_double_backspace = get_setting_or('flick_dakuten_double_backspace', False)
 
 out_event_manager = OutEventManager()
@@ -162,6 +165,7 @@ romaji_processor = RomajiProcessor(out_event_manager,
 flick_processor = FlickProcessor(out_event_manager,
                                  use_ctrl_space_for_kanji_key=use_ctrl_space_for_kanji_key,
                                  long_press_threshold_sec=long_press_threshold_sec,
+                                 flick_axis_threshold=flick_axis_threshold,
                                  flick_dakuten_double_backspace=flick_dakuten_double_backspace)
 
 def software_key_repeat_manager_thread():
@@ -191,7 +195,7 @@ try:
                     print(f"JOYCON_R raw: {r_raw_str}")
 
             events = l_events + r_events
-            axis_value_dict = joycon_l.get_axis_values() | joycon_r.get_axis_values()
+            axis_dict = joycon_l.get_axis_values() | joycon_r.get_axis_values()
             state_dict = joycon_l.get_states() | joycon_r.get_states()
 
             # for event in l_events:
@@ -202,7 +206,7 @@ try:
         # Normal gamepad events
         else:
             events, raw = gamepad.read_events_with_raw()
-            axis_value_dict = gamepad.get_axis_values()
+            axis_dict = gamepad.get_axis_values()
             state_dict = gamepad.get_states()
             if is_verbose:
                 if raw:
@@ -216,7 +220,7 @@ try:
                 print(event)
 
         if is_debug_axis:
-            for axis_type, value in axis_value_dict.items():
+            for axis_type, value in axis_dict.items():
                 print(f"{axis_type}: {value}")
 
         if is_debug_states:
@@ -230,11 +234,11 @@ try:
         if layer == LayerMode.KEYBOARD_JP:
             # Romaji mode
             if jp_input_mode == JPInputMode.ROMAJI:
-                romaji_processor.process(events, axis_value_dict, state_dict)
+                romaji_processor.process(events, axis_dict, state_dict)
             
             # Flick mode
             elif jp_input_mode == JPInputMode.FLICK:
-                flick_processor.process(events, axis_value_dict, state_dict)
+                flick_processor.process(events, axis_dict, state_dict)
 
         out_event_manager.process_events()
 
