@@ -131,7 +131,7 @@ class FlickProcessor(EventProcessor):
             if not is_star:
                 if st == True:
 
-                    if bt == ButtonType.Y:
+                    if bt == ButtonType.Y or bt == ButtonType.SELECT:
                         self.pressing_dict["backspace"] = True
                         add_oev(KeyDown("backspace", repeat=True))
                         set("","")
@@ -147,7 +147,7 @@ class FlickProcessor(EventProcessor):
                         add_oev(KeyPress("space"))
                         set("","")
 
-                    elif bt == ButtonType.A:
+                    elif bt == ButtonType.A or bt == ButtonType.START:
                         add_oev(KeyPress("enter"))
                         set("","")
 
@@ -412,7 +412,7 @@ class FlickProcessor(EventProcessor):
                             # pass
 
                 else: # st == False
-                    if bt == ButtonType.Y:
+                    if bt == ButtonType.Y or bt == ButtonType.SELECT:
                         if "backspace" in self.pressing_dict and self.pressing_dict["backspace"]:
                             self.pressing_dict["backspace"] = False
                             add_oev(KeyUp("backspace"))

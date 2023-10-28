@@ -1,5 +1,8 @@
 import pyautogui
 from ..SoftwareKeyRepeatManager import SoftwareKeyRepeatManager
+from ..modes import LayerMode, JPInputMode, SymbolMode
+from ..LayerModeState import LayerModeState
+from typing import Any
 
 class OutEvent:
     pass
@@ -70,3 +73,15 @@ class HotKey(OutEvent):
 
     def __str__(self):
         return f"HotKey({self.args})"
+    
+class SetLayerMode(OutEvent):
+    def __init__(self, layer_mode: LayerMode, properties: dict = {str, Any}):
+        self.layer_mode = layer_mode
+        self.properties = properties
+
+    def execute(self):
+        layerModeState = LayerModeState.get_singleton()
+        layerModeState.set_layer_mode(self.layer_mode, self.properties)
+
+    def __str__(self):
+        return f"SetLayerMode({self.layer_mode})"

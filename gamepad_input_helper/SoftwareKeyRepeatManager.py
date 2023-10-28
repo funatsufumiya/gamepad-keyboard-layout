@@ -62,10 +62,10 @@ class SoftwareKeyRepeatManager(metaclass=Singleton):
         return f"SoftwareKeyRepeatManager(delay_sec_first={self.delay_sec_first}, delay_sec={self.delay_sec}, enabled={self.enabled})"
 
     @staticmethod
-    def get_singleton():
+    def get_singleton() -> 'SoftwareKeyRepeatManager':
         global softwareKeyRepeatManager
         if softwareKeyRepeatManager is None:
-            softwareKeyRepeatManager = SoftwareKeyRepeatManager()
+            raise RuntimeError("SoftwareKeyRepeatManager singleton is not initialized.")
         return softwareKeyRepeatManager
     
     @staticmethod
