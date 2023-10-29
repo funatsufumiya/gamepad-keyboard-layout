@@ -78,3 +78,7 @@ PDF: [gamepad_keyboard_layout.pdf](./doc/gamepad_keyboard_layout.pdf)
 ![](doc/images/4-mouse-shift1.png)
 
 ![](doc/images/4-mouse-shift2.png)
+
+## License
+
+[CC0 1.0 Universal](./LICENSE)
