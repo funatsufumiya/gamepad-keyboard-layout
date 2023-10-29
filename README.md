@@ -8,6 +8,13 @@ Keyboard layout and mouse control using gamepad.
 
 ゲームパッドだけを使って文字入力やカーソル入力ができるようにするためのもの。
 
+## Usage - 使い方
+
+```bash
+$ pip install -r requirements.txt
+$ python gamepad-input.py # -h shows help, -d shows debug info
+```
+
 ## Concept - コンセプト
 
 Letter input and cursor control using gamepad (like Switch JoyCon) would be nice for making arms free and eliminating stress, compared to conventional mice and keyboards.
