@@ -81,4 +81,4 @@ PDF: [gamepad_keyboard_layout.pdf](./doc/gamepad_keyboard_layout.pdf)
 
 ## License
 
-[GPL v3.0](./LICENSE)
+[LGPL-2.1](./LICENSE)
