@@ -25,6 +25,8 @@ Letter input and cursor control using gamepad (like Switch JoyCon) would be nice
 
 ## Layout - レイアウト
 
+***WARNING: Draft phase - 草案段階***
+
 PDF: [gamepad_keyboard_layout.pdf](./doc/gamepad_keyboard_layout.pdf)
 
 ### Button names - ボタン名
