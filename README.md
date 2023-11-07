@@ -71,6 +71,8 @@ PDF: [gamepad_keyboard_layout.pdf](./doc/gamepad_keyboard_layout.pdf)
 
 ![](doc/images/3-alphabet-shift2.png)
 
+![](doc/images/3-alphabet-shift12.png)
+
 ### Mouse Mode - マウスモード
 
 ![](doc/images/4-mouse-normal.png)
