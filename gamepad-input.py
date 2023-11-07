@@ -11,7 +11,7 @@ from enum import Enum
 from hid_utils import HIDDeviceManager, DeviceMode, JoyConType, AxisType, ButtonType
 from gamepad_input_helper import SoftwareKeyRepeatManager, DebugState, LayerModeState
 from gamepad_input_helper.modes import LayerMode, JPInputMode, SymbolMode
-from gamepad_input_helper.event_processor import OutEventManager, RomajiProcessor, FlickProcessor, EnglishProcessor, EventProcessorManager
+from gamepad_input_helper.event_processor import OutEventManager, RomajiProcessor, FlickProcessor, AlphabetProcessor, EventProcessorManager
 
 import functools
 print = functools.partial(print, flush=True)
@@ -154,8 +154,9 @@ if is_debug:
 pyautogui.PAUSE = get_setting_or('pyautogui_pause_sec', 0.005)
 
 layer_mode_state = LayerModeState(
-    # layer_mode = LayerMode.KEYBOARD_EN,
-    layer_mode = LayerMode.KEYBOARD_JP,
+    layer_mode = LayerMode.KEYBOARD_EN,
+    # layer_mode = LayerMode.KEYBOARD_JP,
+    # layer_mode = LayerMode.MOUSE,
     jp_input_mode = JPInputMode.from_str(get_setting_or('jp_input_mode', "ROMAJI")),
     symbol_mode = SymbolMode.DEFAULT)
 LayerModeState.set_singleton(layer_mode_state)
@@ -175,7 +176,7 @@ event_processor_manager.add_event_processor(
                     long_press_threshold_sec=long_press_threshold_sec))
 
 event_processor_manager.add_event_processor(
-    EnglishProcessor(out_event_manager,
+    AlphabetProcessor(out_event_manager,
                     use_ctrl_space_for_kanji_key=use_ctrl_space_for_kanji_key,
                     long_press_threshold_sec=long_press_threshold_sec))
 
@@ -266,7 +267,7 @@ try:
             else:
                 raise ValueError(f"Unknown JPInputMode: {layer_mode_state.get_jp_input_mode()}")
         else:
-            event_processor_manager.get_event_processor(EnglishProcessor).process(events, axis_dict, state_dict)
+            event_processor_manager.get_event_processor(AlphabetProcessor).process(events, axis_dict, state_dict)
 
         out_event_manager.process_events()
 

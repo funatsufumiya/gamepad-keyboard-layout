@@ -3,7 +3,7 @@ from .EventProcessor import EventProcessor
 from ..out_events import OutEvent, DebugPrint, KeyPress, KeyDown, KeyUp, TypeWrite, HotKey
 from hid_utils import ButtonEvent, AxisType, ButtonType
 
-class EnglishProcessor(EventProcessor):
+class AlphabetProcessor(EventProcessor):
     def __init__(self, out_event_manager,
             use_ctrl_space_for_kanji_key = False,
             long_press_threshold_sec = 0.5
