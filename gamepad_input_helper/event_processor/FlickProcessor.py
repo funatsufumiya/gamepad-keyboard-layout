@@ -2,8 +2,9 @@ import time
 from enum import Enum
 
 from .EventProcessor import EventProcessor
-from ..out_events import OutEvent, DebugPrint, KeyPress, KeyDown, KeyUp, TypeWrite, HotKey
+from ..out_events import OutEvent, DebugPrint, KeyPress, KeyDown, KeyUp, TypeWrite, HotKey, SetLayerMode
 from hid_utils import ButtonEvent, AxisType, ButtonType
+from ..modes import LayerMode
 
 class FlickProcessor(EventProcessor):
     class FlickState(Enum):
@@ -59,10 +60,6 @@ class FlickProcessor(EventProcessor):
 
         _c = 0.5
 
-        # is_left = get_value(ButtonType.ANALOG_L_LEFT)
-        # is_right = get_value(ButtonType.ANALOG_L_RIGHT)
-        # is_up = get_value(ButtonType.ANALOG_L_UP)
-        # is_down = get_value(ButtonType.ANALOG_L_DOWN)
         is_left = get_axis_value(AxisType.ANALOG_L_RIGHT) < _c - _c*self.flick_axis_threshold
         is_right = get_axis_value(AxisType.ANALOG_L_RIGHT) > _c + _c*self.flick_axis_threshold
         is_up = get_axis_value(AxisType.ANALOG_L_DOWN) < _c - _c*self.flick_axis_threshold
@@ -415,6 +412,10 @@ class FlickProcessor(EventProcessor):
                         elif fs == FS.SYMBOL:
                             set("","")
                             # pass
+
+                    elif bt == ButtonType.ANALOG_R_PRESS:
+                        set("","")
+                        add_oev(SetLayerMode(layer_mode=LayerMode.KEYBOARD_EN))
 
                 else: # st == False
                     if bt == ButtonType.Y or bt == ButtonType.SELECT:

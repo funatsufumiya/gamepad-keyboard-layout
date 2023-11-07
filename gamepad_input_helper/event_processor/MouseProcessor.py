@@ -4,7 +4,7 @@ from ..out_events import OutEvent, DebugPrint, KeyPress, KeyDown, KeyUp, TypeWri
 from hid_utils import ButtonEvent, AxisType, ButtonType
 from ..modes import LayerMode
 
-class RomajiProcessor(EventProcessor):
+class MouseProcessor(EventProcessor):
     def __init__(self, out_event_manager,
             use_ctrl_space_for_kanji_key = False,
             long_press_threshold_sec = 0.5
@@ -30,6 +30,11 @@ class RomajiProcessor(EventProcessor):
         ):
 
         add_oev = self._add_out_event
+
+        def add_shift_oev(key: str) -> str:
+            add_oev(KeyDown("shift"))
+            add_oev(KeyPress(key))
+            add_oev(KeyUp("shift"))
 
         for event in events:
             st = event.state
@@ -70,96 +75,24 @@ class RomajiProcessor(EventProcessor):
             is_shift = self.pre_shift_flag or self.is_shift_long_pressing
             is_star = self.pre_star_flag or self.is_star_long_pressing
 
-            if st == True:
-                if bt == ButtonType.A:
-                    add_oev(KeyPress("a"))
-                elif bt == ButtonType.B:
-                    add_oev(KeyPress("i"))
-                elif bt == ButtonType.X:
-                    add_oev(KeyPress("e"))
-                elif bt == ButtonType.Y:
-                    add_oev(KeyPress("o"))
-                elif bt == ButtonType.ANALOG_R_DOWN:
-                    add_oev(KeyPress("x"))
-                elif bt == ButtonType.ANALOG_R_RIGHT:   
-                    add_oev(TypeWrite("ya"))
-                elif bt == ButtonType.ANALOG_R_UP:
-                    add_oev(TypeWrite("yu"))
-                elif bt == ButtonType.ANALOG_R_LEFT:
-                    add_oev(TypeWrite("yo"))
-
             if not is_shift and not is_star:
                 if st == True:
-                    if bt == ButtonType.RIGHT:
-                        add_oev(KeyPress("k"))
-                    elif bt == ButtonType.DOWN:
-                        add_oev(KeyPress("s"))
-                    elif bt == ButtonType.LEFT:
-                        add_oev(KeyPress("t"))
-                    elif bt == ButtonType.UP:
-                        add_oev(KeyPress("h"))
-                    elif bt == ButtonType.ANALOG_L_RIGHT:
-                        add_oev(KeyPress("n"))
-                    elif bt == ButtonType.ANALOG_L_DOWN:
-                        add_oev(KeyPress("w"))
-                    elif bt == ButtonType.ANALOG_L_LEFT:
-                        add_oev(KeyPress("m"))
-                    elif bt == ButtonType.ANALOG_L_UP:
-                        add_oev(TypeWrite("xtsu"))
-                    elif bt == ButtonType.SELECT:
+                    if bt == ButtonType.SELECT:
                         self.pressing_dict["backspace"] = True
                         add_oev(KeyDown("backspace", repeat=True))
                     elif bt == ButtonType.START:
                         add_oev(KeyPress("enter"))
-                    elif bt == ButtonType.ZR:
-                        add_oev(KeyPress("u"))
-                    elif bt == ButtonType.R:
-                        add_oev(KeyPress("space"))
                     elif bt == ButtonType.ANALOG_R_PRESS:
-                        add_oev(SetLayerMode(layer_mode=LayerMode.KEYBOARD_EN))
+                        add_oev(SetLayerMode(layer_mode=LayerMode.KEYBOARD_JP))
+            elif is_shift and is_star:
+                if st == True:
+                    pass
             elif is_star:
                 if st == True:
-                    if bt == ButtonType.RIGHT:
-                        add_oev(KeyPress("g"))
-                    elif bt == ButtonType.DOWN:
-                        add_oev(KeyPress("z"))
-                    elif bt == ButtonType.LEFT:
-                        add_oev(KeyPress("d"))
-                    elif bt == ButtonType.UP:
-                        add_oev(KeyPress("b"))
-                    elif bt == ButtonType.ANALOG_L_RIGHT:
-                        add_oev(TypeWrite("nn"))
-                    elif bt == ButtonType.SELECT:
-                        add_oev(KeyPress(","))
-                    elif bt == ButtonType.START:
-                        add_oev(KeyPress("."))
-                    elif bt == ButtonType.ZR:
-                        add_oev(KeyPress("p"))
-                    elif bt == ButtonType.R:
-                        add_oev(KeyPress("r"))
-
+                    pass
             elif is_shift:
                 if st == True:
-                    if bt == ButtonType.RIGHT:
-                        add_oev(KeyPress("right"))
-                    elif bt == ButtonType.DOWN:
-                        add_oev(KeyPress("down"))
-                    elif bt == ButtonType.LEFT:
-                        add_oev(KeyPress("left"))
-                    elif bt == ButtonType.UP:
-                        add_oev(KeyPress("up"))
-                    elif bt == ButtonType.SELECT:
-                        add_oev(KeyPress("?"))
-                    elif bt == ButtonType.START:
-                        add_oev(KeyPress("!"))
-                    elif bt == ButtonType.ZR:
-                        add_oev(KeyPress("-"))
-                    elif bt == ButtonType.R:
-                        # kanji
-                        if self.use_ctrl_space_for_kanji_key:
-                            add_oev(HotKey("ctrl","space"))
-                        else:
-                            add_oev(KeyPress("kanji"))
+                    pass
 
             if st == False and bt == ButtonType.SELECT:
                 if "backspace" in self.pressing_dict and self.pressing_dict["backspace"]:

@@ -1,7 +1,8 @@
 import time
 from .EventProcessor import EventProcessor
-from ..out_events import OutEvent, DebugPrint, KeyPress, KeyDown, KeyUp, TypeWrite, HotKey
+from ..out_events import OutEvent, DebugPrint, KeyPress, KeyDown, KeyUp, TypeWrite, HotKey, SetLayerMode
 from hid_utils import ButtonEvent, AxisType, ButtonType
+from ..modes import LayerMode
 
 class AlphabetProcessor(EventProcessor):
     def __init__(self, out_event_manager,
@@ -117,6 +118,8 @@ class AlphabetProcessor(EventProcessor):
                         add_oev(KeyPress("p"))
                     elif bt == ButtonType.ANALOG_R_LEFT:
                         add_oev(KeyPress("r"))
+                    elif bt == ButtonType.ANALOG_R_PRESS:
+                        add_oev(SetLayerMode(layer_mode=LayerMode.MOUSE))
             elif is_shift and is_star:
                 if st == True:
                     if bt == ButtonType.A:

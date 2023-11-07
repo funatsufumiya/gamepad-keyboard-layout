@@ -390,6 +390,21 @@ class HIDDevice:
         states[ButtonType.ANALOG_R_LEFT] = bool(r_left_rate > self.axis_threshold)
         states[ButtonType.ANALOG_R_RIGHT] = bool(r_right_rate > self.axis_threshold)
 
+        l_up_rate_clip = min(max(l_up_rate, 0.0), 1.0)
+        l_down_rate_clip = min(max(l_down_rate, 0.0), 1.0)
+        l_left_rate_clip = min(max(l_left_rate, 0.0), 1.0)
+        l_right_rate_clip = min(max(l_right_rate, 0.0), 1.0)
+
+        r_up_rate_clip = min(max(r_up_rate, 0.0), 1.0)
+        r_down_rate_clip = min(max(r_down_rate, 0.0), 1.0)
+        r_left_rate_clip = min(max(r_left_rate, 0.0), 1.0)
+        r_right_rate_clip = min(max(r_right_rate, 0.0), 1.0)
+
+        self.axis_dict[AxisType.ANALOG_L_DOWN] = (l_down_rate_clip - l_up_rate_clip) / 2.0 + 0.5
+        self.axis_dict[AxisType.ANALOG_L_RIGHT] = (l_right_rate_clip - l_left_rate_clip) / 2.0 + 0.5
+        self.axis_dict[AxisType.ANALOG_R_DOWN] = (r_down_rate_clip - r_up_rate_clip) / 2.0 + 0.5
+        self.axis_dict[AxisType.ANALOG_R_RIGHT] = (r_right_rate_clip - r_left_rate_clip) / 2.0 + 0.5
+
         for button_type in states.keys():
             if not button_type in self.button_state_dict:
                 if states[button_type] == True:
@@ -416,7 +431,7 @@ class HIDDevice:
         elif self.mode == DeviceMode.SWITCH_PRO:
             return self._read_states_switch_pro(raw)
         else:
-            raise NotImplementedError(f"Unknown mode: {self.mode}")
+            raise ValueError(f"Unknown mode: {self.mode}")
         
     def read_events_with_raw(self) -> tuple[list[ButtonEvent], list[int]]:
         raw = self.read_raw()
@@ -433,7 +448,7 @@ class HIDDevice:
         elif self.mode == DeviceMode.SWITCH_PRO:
             return (self._read_states_switch_pro(raw), raw)
         else:
-            raise NotImplementedError(f"Unknown mode: {self.mode}")
+            raise ValueError(f"Unknown mode: {self.mode}")
         
     # def read_states(self) -> dict[ButtonType, bool]:
     #     self.read_events()

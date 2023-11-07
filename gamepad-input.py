@@ -11,7 +11,7 @@ from enum import Enum
 from hid_utils import HIDDeviceManager, DeviceMode, JoyConType, AxisType, ButtonType
 from gamepad_input_helper import SoftwareKeyRepeatManager, DebugState, LayerModeState
 from gamepad_input_helper.modes import LayerMode, JPInputMode, SymbolMode
-from gamepad_input_helper.event_processor import OutEventManager, RomajiProcessor, FlickProcessor, AlphabetProcessor, EventProcessorManager
+from gamepad_input_helper.event_processor import OutEventManager, RomajiProcessor, FlickProcessor, AlphabetProcessor, MouseProcessor, EventProcessorManager
 
 import functools
 print = functools.partial(print, flush=True)
@@ -136,6 +136,7 @@ else:
 
 axis_dict: dict[AxisType, float] = {}
 state_dict: dict[ButtonType, bool] = {}
+_old_axis_dict: dict[AxisType, float] = {}
 
 software_key_repeat_enabled = get_setting_or('software_key_repeat_enabled', False)
 software_key_repeat_delay_sec = get_setting_or('software_key_repeat_delay_sec', 0.1)
@@ -186,6 +187,11 @@ event_processor_manager.add_event_processor(
                     long_press_threshold_sec=long_press_threshold_sec,
                     flick_axis_threshold=flick_axis_threshold,
                     flick_dakuten_double_backspace=flick_dakuten_double_backspace))
+
+event_processor_manager.add_event_processor(
+    MouseProcessor(out_event_manager,
+                    use_ctrl_space_for_kanji_key=use_ctrl_space_for_kanji_key,
+                    long_press_threshold_sec=long_press_threshold_sec))
 
 # jp_processor_type = RomajiProcessor if layer_mode_state.get_jp_input_mode() == JPInputMode.ROMAJI else FlickProcessor
 
@@ -246,8 +252,15 @@ try:
                 print(event)
 
         if is_debug_axis:
+            # print if value changed
             for axis_type, value in axis_dict.items():
-                print(f"{axis_type}: {value}")
+                if axis_type in _old_axis_dict:
+                    # diff 0.005
+                    if abs(value - _old_axis_dict[axis_type]) > 0.005:
+                        print(f"{axis_type}: {value}")
+
+            # copy dict
+            _old_axis_dict = axis_dict.copy()
 
         if is_debug_states:
             print("states:")
@@ -259,15 +272,23 @@ try:
         # Process events
         # event_processor_manager.get_event_processor_by_layer_mode(layer_mode_state.get_layer_mode()).process(events, axis_dict, state_dict)
 
-        if layer_mode_state.get_layer_mode() == LayerMode.KEYBOARD_JP:
-            if layer_mode_state.get_jp_input_mode() == JPInputMode.ROMAJI:
-                event_processor_manager.get_event_processor(RomajiProcessor).process(events, axis_dict, state_dict)
-            elif layer_mode_state.get_jp_input_mode() == JPInputMode.FLICK:
-                event_processor_manager.get_event_processor(FlickProcessor).process(events, axis_dict, state_dict)
+        m = layer_mode_state.get_layer_mode()
+        jm = layer_mode_state.get_jp_input_mode()
+        gp = event_processor_manager.get_event_processor
+
+        if m == LayerMode.KEYBOARD_JP:
+            if jm == JPInputMode.ROMAJI:
+                gp(RomajiProcessor).process(events, axis_dict, state_dict)
+            elif jm == JPInputMode.FLICK:
+                gp(FlickProcessor).process(events, axis_dict, state_dict)
             else:
-                raise ValueError(f"Unknown JPInputMode: {layer_mode_state.get_jp_input_mode()}")
+                raise ValueError(f"Unknown JPInputMode: {jm}")
+        elif m == LayerMode.KEYBOARD_EN:
+            gp(AlphabetProcessor).process(events, axis_dict, state_dict)
+        elif m == LayerMode.MOUSE:
+            gp(MouseProcessor).process(events, axis_dict, state_dict)
         else:
-            event_processor_manager.get_event_processor(AlphabetProcessor).process(events, axis_dict, state_dict)
+            raise ValueError(f"Unknown LayerMode: {m}")
 
         out_event_manager.process_events()
 

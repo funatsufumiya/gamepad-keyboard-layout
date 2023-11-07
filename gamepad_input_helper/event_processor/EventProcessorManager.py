@@ -11,6 +11,8 @@ class EventProcessorManager:
         self._event_processor_dict[type(event_processor)] = event_processor
 
     def get_event_processor(self, event_processor_type: type[EventProcessor]):
+        if not event_processor_type in self._event_processor_dict:
+            raise RuntimeError(f"EventProcessor {event_processor_type} is not registered")
         return self._event_processor_dict[event_processor_type]
     
     # def set_layer_mode_mapping(self, layer_mode: 'LayerMode', event_processor_type: type[EventProcessor]):
