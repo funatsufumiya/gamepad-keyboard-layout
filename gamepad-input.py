@@ -76,6 +76,11 @@ gamepad = None
 joycon_l = None
 joycon_r = None
 
+# if DeviceMode.SWITCH_PRO
+if device_mode == DeviceMode.SWITCH_PRO:
+    vendor_id = 0x057e
+    product_id = 0x2009
+
 if device_mode == DeviceMode.JOYCON:
     vendor_id_l = 0x057e
     product_id_l = 0x2006

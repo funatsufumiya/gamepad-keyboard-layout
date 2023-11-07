@@ -44,6 +44,11 @@ class FlickProcessor(EventProcessor):
         self.flick_dakuten_double_backspace = flick_dakuten_double_backspace
 
     def get_flick_state(self, state_dict: dict[ButtonType, bool], axis_dict: dict[AxisType, float]) -> FlickState:
+        def get_axis_value(axis_type: AxisType, _default_value=0.5):
+            if axis_type not in axis_dict:
+                return _default_value
+            return axis_dict[axis_type]
+        
         def get_value(axis_type: ButtonType):
             if axis_type not in state_dict:
                 return False
@@ -58,10 +63,10 @@ class FlickProcessor(EventProcessor):
         # is_right = get_value(ButtonType.ANALOG_L_RIGHT)
         # is_up = get_value(ButtonType.ANALOG_L_UP)
         # is_down = get_value(ButtonType.ANALOG_L_DOWN)
-        is_left = axis_dict[AxisType.ANALOG_L_RIGHT] < _c - _c*self.flick_axis_threshold
-        is_right = axis_dict[AxisType.ANALOG_L_RIGHT] > _c + _c*self.flick_axis_threshold
-        is_up = axis_dict[AxisType.ANALOG_L_DOWN] < _c - _c*self.flick_axis_threshold
-        is_down = axis_dict[AxisType.ANALOG_L_DOWN] > _c + _c*self.flick_axis_threshold
+        is_left = get_axis_value(AxisType.ANALOG_L_RIGHT) < _c - _c*self.flick_axis_threshold
+        is_right = get_axis_value(AxisType.ANALOG_L_RIGHT) > _c + _c*self.flick_axis_threshold
+        is_up = get_axis_value(AxisType.ANALOG_L_DOWN) < _c - _c*self.flick_axis_threshold
+        is_down = get_axis_value(AxisType.ANALOG_L_DOWN) > _c + _c*self.flick_axis_threshold
         is_hori_center = not (is_left or is_right)
         is_vert_center = not (is_up or is_down)
         is_center = is_hori_center and is_vert_center

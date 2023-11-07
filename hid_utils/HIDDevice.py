@@ -118,7 +118,7 @@ class HIDDevice:
 
     
     def _read_states_xinput(self, raw: list[int]) -> list[ButtonEvent]:
-        raise NotImplementedError
+        raise NotImplementedError("XInput is not implemented now for HIDDevice.")
     
     def _read_states_joycon_l(self, raw: list[int]) -> list[ButtonEvent]:
         events: list[ButtonEvent] = []
@@ -292,7 +292,114 @@ class HIDDevice:
         
     
     def _read_states_switch_pro(self, raw: list[int]) -> list[ButtonEvent]:
-        raise NotImplementedError
+        events: list[ButtonEvent] = []
+        states: dict[ButtonType, bool] = {}
+
+        # raw[3] is button
+        # 0: nothing pressed
+        # 1: Y pressed
+        # 2: X pressed
+        # 4: B pressed
+        # 8: A pressed
+        # 16: SR pressed (ignore)
+        # 32: SL pressed (ignore)
+        # 64: R pressed
+        # 128: ZR pressed
+
+        states[ButtonType.Y] = bool(raw[3] & 0x1)
+        states[ButtonType.X] = bool(raw[3] & 0x2)
+        states[ButtonType.B] = bool(raw[3] & 0x4)
+        states[ButtonType.A] = bool(raw[3] & 0x8)
+        states[ButtonType.R] = bool(raw[3] & 0x40)
+        states[ButtonType.ZR] = bool(raw[3] & 0x80)
+
+        # raw[4] is button
+        # 0: nothing pressed
+        # 1: MINUS pressed
+        # 2: PLUS pressed
+        # 4: ANALOG_R pressed
+        # 8: ANALOG_L pressed
+        # 16: HOME pressed (ignore)
+
+        states[ButtonType.SELECT] = bool(raw[4] & 0x1)
+        states[ButtonType.START] = bool(raw[4] & 0x2)
+        states[ButtonType.ANALOG_R_PRESS] = bool(raw[4] & 0x4)
+        states[ButtonType.ANALOG_L_PRESS] = bool(raw[4] & 0x8)
+
+        # raw[5] is button
+        # 0: nothing pressed
+        # 1: DOWN pressed
+        # 2: UP pressed
+        # 4: RIGHT pressed
+        # 8: LEFT pressed
+        # 16: SR pressed (ignore)
+        # 32: SL pressed (ignore)
+        # 64: L pressed
+        # 128: ZL pressed
+
+        states[ButtonType.DOWN] = bool(raw[5] & 0x1)
+        states[ButtonType.UP] = bool(raw[5] & 0x2)
+        states[ButtonType.RIGHT] = bool(raw[5] & 0x4)
+        states[ButtonType.LEFT] = bool(raw[5] & 0x8)
+        states[ButtonType.L] = bool(raw[5] & 0x40)
+        states[ButtonType.ZL] = bool(raw[5] & 0x80)
+
+        left_horizontal = self._get_nbit(raw, 6, 0, 8) | (self._get_nbit(raw, 7, 0, 4) << 8)
+        left_vertical = self._get_nbit(raw, 7, 4, 4) | (self._get_nbit(raw, 8, 0, 8) << 4)
+
+        right_horizontal = self._get_nbit(raw, 9, 0, 8) | (self._get_nbit(raw, 10, 0, 4) << 8)
+        right_vertical = self._get_nbit(raw, 10, 4, 4) | (self._get_nbit(raw, 11, 0, 8) << 4)
+
+        # print
+        # print(f"left_horizontal: {left_horizontal}")
+        # print(f"left_vertical: {left_vertical}")
+        # print(f"right_horizontal: {right_horizontal}")
+        # print(f"right_vertical: {right_vertical}")
+
+        left_horizontal_max = 3329
+        left_horizontal_min = 640
+        left_horizontal_center = 1946
+        left_vertical_max = 3389
+        left_vertical_min = 1133
+        left_vertical_center = 2172
+
+        right_horizontal_max = 3409
+        right_horizontal_min = 838
+        right_horizontal_center = 2100
+        right_vertical_max = 2869
+        right_vertical_min = 569
+        right_vertical_center = 1805
+
+        l_up_rate = (left_vertical - left_vertical_center) / (left_vertical_max - left_vertical_center)
+        l_down_rate = (left_vertical_center - left_vertical) / (left_vertical_center - left_vertical_min)
+        states[ButtonType.ANALOG_L_UP] = bool(l_up_rate > self.axis_threshold)
+        states[ButtonType.ANALOG_L_DOWN] = bool(l_down_rate > self.axis_threshold)
+
+        l_left_rate = (left_horizontal_center - left_horizontal) / (left_horizontal_center - left_horizontal_min)
+        l_right_rate = (left_horizontal - left_horizontal_center) / (left_horizontal_max - left_horizontal_center)
+        states[ButtonType.ANALOG_L_LEFT] = bool(l_left_rate > self.axis_threshold)
+        states[ButtonType.ANALOG_L_RIGHT] = bool(l_right_rate > self.axis_threshold)
+
+        r_up_rate = (right_vertical - right_vertical_center) / (right_vertical_max - right_vertical_center)
+        r_down_rate = (right_vertical_center - right_vertical) / (right_vertical_center - right_vertical_min)
+        states[ButtonType.ANALOG_R_UP] = bool(r_up_rate > self.axis_threshold)
+        states[ButtonType.ANALOG_R_DOWN] = bool(r_down_rate > self.axis_threshold)
+
+        r_left_rate = (right_horizontal_center - right_horizontal) / (right_horizontal_center - right_horizontal_min)
+        r_right_rate = (right_horizontal - right_horizontal_center) / (right_horizontal_max - right_horizontal_center)
+        states[ButtonType.ANALOG_R_LEFT] = bool(r_left_rate > self.axis_threshold)
+        states[ButtonType.ANALOG_R_RIGHT] = bool(r_right_rate > self.axis_threshold)
+
+        for button_type in states.keys():
+            if not button_type in self.button_state_dict:
+                if states[button_type] == True:
+                    events.append(ButtonEvent(button_type, states[button_type]))
+                    self.button_state_dict[button_type] = states[button_type]
+            elif states[button_type] != self.button_state_dict[button_type]:
+                events.append(ButtonEvent(button_type, states[button_type]))
+                self.button_state_dict[button_type] = states[button_type]
+
+        return events
     
     def read_events(self) -> list[ButtonEvent]:
         raw = self.read_raw()
