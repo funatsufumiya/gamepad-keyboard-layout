@@ -166,6 +166,11 @@ long_press_threshold_sec = get_setting_or('long_press_threshold_sec', 0.5)
 use_ctrl_space_for_kanji_key = get_setting_or('use_ctrl_space_for_kanji_key', False)
 flick_axis_threshold = get_setting_or('flick_axis_threshold', 0.3)
 flick_dakuten_double_backspace = get_setting_or('flick_dakuten_double_backspace', False)
+mouse_axis_threshold = get_setting_or('mouse_axis_threshold', 0.3)
+mouse_move_speed_normal = get_setting_or('mouse_move_speed_normal', 4)
+mouse_move_speed_slow = get_setting_or('mouse_move_speed_slow', 2)
+mouse_move_speed_fast = get_setting_or('mouse_move_speed_fast', 8)
+mouse_move_speed_very_slow = get_setting_or('mouse_move_speed_very_slow', 1)
 
 out_event_manager = OutEventManager()
 event_processor_manager = EventProcessorManager()
@@ -191,7 +196,12 @@ event_processor_manager.add_event_processor(
 event_processor_manager.add_event_processor(
     MouseProcessor(out_event_manager,
                     use_ctrl_space_for_kanji_key=use_ctrl_space_for_kanji_key,
-                    long_press_threshold_sec=long_press_threshold_sec))
+                    long_press_threshold_sec=long_press_threshold_sec,
+                    mouse_axis_threshold=mouse_axis_threshold,
+                    mouse_move_speed_normal=mouse_move_speed_normal,
+                    mouse_move_speed_slow=mouse_move_speed_slow,
+                    mouse_move_speed_fast=mouse_move_speed_fast,
+                    mouse_move_speed_very_slow=mouse_move_speed_very_slow))
 
 # jp_processor_type = RomajiProcessor if layer_mode_state.get_jp_input_mode() == JPInputMode.ROMAJI else FlickProcessor
 
@@ -209,6 +219,16 @@ def software_key_repeat_manager_thread():
 
 software_key_repeat_manager_thread = threading.Thread(target=software_key_repeat_manager_thread)
 software_key_repeat_manager_thread.start()
+
+def process_events_thread():
+    while True:
+        out_event_manager.process_events()
+        # t = time.time()
+        time.sleep(0.001)
+        # print(f"process_events_thread: {time.time() - t} sec")
+
+process_events_thread = threading.Thread(target=process_events_thread)
+process_events_thread.start()
 
 try:
     # Main loop
@@ -289,8 +309,8 @@ try:
             gp(MouseProcessor).process(events, axis_dict, state_dict)
         else:
             raise ValueError(f"Unknown LayerMode: {m}")
-
-        out_event_manager.process_events()
+        
+        time.sleep(0.001)
 
 except KeyboardInterrupt:
     print("KeyboardInterrupt")

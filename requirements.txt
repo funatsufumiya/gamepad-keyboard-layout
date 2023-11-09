@@ -2,3 +2,4 @@ hidapi
 pyautogui
 argparse
 asyncio
+PyUserInput

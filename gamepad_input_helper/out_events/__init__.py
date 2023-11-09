@@ -2,7 +2,16 @@ import pyautogui
 from ..SoftwareKeyRepeatManager import SoftwareKeyRepeatManager
 from ..modes import LayerMode, JPInputMode, SymbolMode
 from ..LayerModeState import LayerModeState
+from .MouseController import MouseController
+from .MouseButton import MouseButton
 from typing import Any
+
+# NOTE:
+#
+# - key control is handled with pyautogui
+# - mouse control is handled with pymouse (PyUserInput)
+#
+# this is because pyautogui.PAUSE cause laggy mouse movement
 
 class OutEvent:
     pass
@@ -73,6 +82,51 @@ class HotKey(OutEvent):
 
     def __str__(self):
         return f"HotKey({self.args})"
+    
+class MouseMoveRel(OutEvent):
+    def __init__(self, x: int, y: int):
+        self.x = x
+        self.y = y
+
+    def execute(self):
+        mc = MouseController.get_singleton()
+        mc.move_rel(self.x, self.y)
+        # old_pause = None
+        # if self.pause is False:
+        #     old_pause = pyautogui.PAUSE
+        #     pyautogui.PAUSE = 0
+        # pyautogui.moveRel(xOffset=self.x, yOffset=self.y, duration=self.duration, _pause=self.pause)
+        # if self.pause is False:
+        #     pyautogui.PAUSE = old_pause
+
+    def __str__(self):
+        return f"MouseMove(x={self.x}, y={self.y})"
+    
+class MouseClick(OutEvent):
+    def __init__(self, button: MouseButton = MouseButton.LEFT, count: int = 1):
+        self.button = button
+        self.count = count
+
+    def execute(self):
+        mc = MouseController.get_singleton()
+        mc.click(button=self.button, count=self.count)
+        # pyautogui.click(x=None, y=None, button=self.button)
+
+    def __str__(self):
+        return f"MouseClick(button={self.button}, count={self.count})"
+    
+class MouseWheel(OutEvent):
+    def __init__(self, x: int = None, y: int = None):
+        self.x = x
+        self.y = y
+
+    def execute(self):
+        mc = MouseController.get_singleton()
+        mc.scroll(x=self.x, y=self.y)
+        # pyautogui.scroll(clicks=self.clicks, x=self.x, y=self.y, _pause=self.pause)
+
+    def __str__(self):
+        return f"MouseWheel(x={self.x}, y={self.y})"
     
 class SetLayerMode(OutEvent):
     # def __init__(self, layer_mode: LayerMode, properties: dict = {str, Any}):

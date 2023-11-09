@@ -9,3 +9,8 @@ jp_input_mode: ROMAJI
 pyautogui_pause_sec: 0.03
 flick_dakuten_double_backspace: false
 flick_axis_threshold: 0.3
+mouse_axis_threshold: 0.3
+mouse_move_speed_normal: 4
+mouse_move_speed_slow: 2
+mouse_move_speed_fast: 8
+mouse_move_speed_very_slow: 1
